@@ -72,11 +72,11 @@ pub struct Effect {
 pub fn Effect::new(effect : () -> Unit) -> Effect {
   let dependencies = []
   let effect = { effect, dependencies }
-  effect.run()
   let off = signal_events.on(Trace, id => {
     guard dependencies.contains(id)
     dependencies.push(id)
   })
+  effect.run()
   off()
   signal_events.on(Change, id => {
     guard dependencies.contains(id)

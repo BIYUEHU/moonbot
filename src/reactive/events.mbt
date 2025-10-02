@@ -1,8 +1,8 @@
 ///|
 pub struct Events[N, T] {
-  mut count : Int
-  listeners : Map[N, Map[Int, (T) -> Unit]]
-  middlewares : Map[Int, (N, T, () -> Unit) -> Unit]
+  priv mut count : Int
+  priv listeners : Map[N, Map[Int, (T) -> Unit]]
+  priv middlewares : Map[Int, (N, T, () -> Unit) -> Unit]
 }
 
 ///|
@@ -72,6 +72,9 @@ pub fn[N : Eq + Hash, T] Events::emit(
   self.exec(event, data, () => listeners
     .values()
     .each(listener => data |> listener))
+  // self.exec(event, data, () => listeners
+  //   .values()
+  //   .each(listener => data |> listener))
 }
 
 ///|

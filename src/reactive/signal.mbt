@@ -8,24 +8,17 @@ priv enum SignalEvents {
 let signal_events : Events[SignalEvents, Int] = Events::new()
 
 ///|
-let signal_id : Ref[Int] = { val: 0 }
-
-///|
-fn get_signal_id() -> Int {
-  let { val } = signal_id
-  signal_id.val += 1
-  val
-}
+let signal_counter : Counter = Counter::new()
 
 ///|
 pub struct State[T] {
-  id : Int
-  mut val : T
+  priv id : Int
+  priv mut val : T
 }
 
 ///|
 pub fn[T] State::new(val : T) -> State[T] {
-  { val, id: get_signal_id() }
+  { val, id: signal_counter.get() }
 }
 
 ///|
@@ -40,18 +33,28 @@ pub fn[T] State::get(self : State[T]) -> T {
 ///|
 pub fn[T : Eq] State::set(self : State[T], val : T) -> Unit {
   guard val != self.val
-  signal_events.emit(Change, self.id)
   self.val = val
+  signal_events.emit(Change, self.id)
+}
+
+///|
+pub fn[T] State::on(self : State[T], listener : (T) -> Unit) -> () -> Unit {
+  effect(() => listener(self.get()))
+}
+
+///|
+pub fn[T : Eq] State::update(self : State[T], f : (T) -> T) -> Unit {
+  self.set(f(self.get()))
 }
 
 ///|
 pub struct Computed[T] {
-  comp : () -> T
+  priv callback : () -> T
 }
 
 ///|
-pub fn[T] Computed::new(comp : () -> T) -> Computed[T] {
-  { comp, }
+pub fn[T] Computed::new(callback : () -> T) -> Computed[T] {
+  { callback, }
 }
 
 ///|
@@ -59,37 +62,49 @@ pub fnalias Computed::new as computed
 
 ///|
 pub fn[T] Computed::get(self : Computed[T]) -> T {
-  (self.comp)()
+  (self.callback)()
 }
 
 ///|
-pub struct Effect {
-  effect : () -> Unit
-  dependencies : Array[Int]
+pub fn[T] Computed::on(
+  self : Computed[T],
+  listener : (T) -> Unit,
+) -> () -> Unit {
+  effect(() => listener(self.get()))
 }
 
 ///|
-pub fn Effect::new(effect : () -> Unit) -> Effect {
+pub fn effect(callback : () -> Unit) -> () -> Unit {
   let dependencies = []
-  let effect = { effect, dependencies }
-  let off = signal_events.on(Trace, id => {
-    guard dependencies.contains(id)
+  let off1 = signal_events.on(Trace, id => if !dependencies.contains(id) {
     dependencies.push(id)
   })
-  effect.run()
-  off()
-  signal_events.on(Change, id => {
-    guard dependencies.contains(id)
-    effect.run()
+  let off2 = signal_events.on(Change, id => if dependencies.contains(id) {
+    dependencies.clear()
+    callback()
   })
-  |> ignore
-  effect
+  callback()
+  () => {
+    off1()
+    off2()
+  }
 }
 
 ///|
-pub fnalias Effect::new as effect
-
-///|
-pub fn Effect::run(self : Effect) -> Unit {
-  (self.effect)()
+test "signal" {
+  let condition = state(true)
+  let a = state(1)
+  let b = state(2)
+  let result = computed(() => if condition.get() {
+    println("used a branch")
+    a.get() * 2
+  } else {
+    println("used b branch")
+    b.get() * 3
+  })
+  effect(() => println("result changed: \{result.get()}")) |> ignore
+  condition.set(false)
+  a.set(10)
+  b.set(20)
+  condition.set(true)
 }

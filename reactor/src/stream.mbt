@@ -7,6 +7,7 @@ pub struct Observable[T, E] {
 }
 
 ///|
+/// Creates a new observable with the given `onFn` function.
 pub fn[T, E] Observable::new(
   onFn : (Observer[T, E]) -> () -> Unit,
 ) -> Observable[T, E] {
@@ -14,6 +15,7 @@ pub fn[T, E] Observable::new(
 }
 
 ///|
+/// Subscribes to the observable with the given `observer` and returns a
 pub fn[T, E] Observable::on(
   self : Observable[T, E],
   observer : Observer[T, E],
@@ -40,6 +42,7 @@ pub fn[T, E] Observable::on(
 }
 
 ///|
+/// Converts the observable to an observer and subscribes to it with the given
 pub fn[T, E] Observable::on_from_next(
   self : Observable[T, E],
   next : (T) -> Unit,
@@ -56,6 +59,7 @@ pub struct Observer[T, E] {
 }
 
 ///|
+/// Creates a new observer with the given `next`, `error`, and `complete`
 pub fn[T, E] Observer::new(
   next? : (T) -> Unit,
   error? : (E) -> Unit,
@@ -72,6 +76,7 @@ pub struct Subscription {
 }
 
 ///|
+/// Creates a new subscription with the given `off` function.
 pub fn Subscription::new(off? : () -> Unit) -> Subscription {
   if off is Some(off) {
     let id = stream_counter.get()
@@ -82,6 +87,7 @@ pub fn Subscription::new(off? : () -> Unit) -> Subscription {
 }
 
 ///|
+/// Unsubscribes the observer from the subscription.
 pub fn Subscription::off(self : Subscription) -> Unit {
   guard !self.closed
   self.closed = true
@@ -89,11 +95,13 @@ pub fn Subscription::off(self : Subscription) -> Unit {
 }
 
 ///|
+/// Returns `true` if the subscription is closed, `false` otherwise.
 pub fn Subscription::is_closed(self : Subscription) -> Bool {
   self.closed
 }
 
 ///|
+/// Adds the given `subscription` to the list of subscriptions.
 pub fn Subscription::add(
   self : Subscription,
   subscription : Subscription,
@@ -103,6 +111,7 @@ pub fn Subscription::add(
 }
 
 ///|
+/// Adds the given `off` function to the list of subscriptions.
 pub fn Subscription::add_from_func(
   self : Subscription,
   off : () -> Unit,
@@ -112,6 +121,7 @@ pub fn Subscription::add_from_func(
 }
 
 ///|
+/// Removes the given `subscription` from the list of subscriptions.
 pub fn Subscription::remove(
   self : Subscription,
   subscription : Subscription,
@@ -130,6 +140,7 @@ pub struct Subject[T, E] {
 }
 
 ///|
+/// Creates a new subject with the given `onFn` function.
 pub fn[T, E] Subject::new(
   onFn : (Observer[T, E]) -> () -> Unit,
 ) -> Subject[T, E] {
@@ -143,36 +154,43 @@ pub fn[T, E] Subject::new(
 }
 
 ///|
+/// Converts the subject to an observable and returns it.
 pub fn[T, E] Subject::as_observable(self : Subject[T, E]) -> Observable[T, E] {
   Observable::new(observer => () => self.on(observer).off())
 }
 
 ///|
+/// Returns `true` if the subject is closed, `false` otherwise.
 pub fn[T, E] Subject::is_closed(self : Subject[T, E]) -> Bool {
   self.closed
 }
 
 ///|
+/// Returns `true` if the subject is stopped, `false` otherwise.
 pub fn[T, E] Subject::is_stopped(self : Subject[T, E]) -> Bool {
   self.stopped
 }
 
 ///|
+/// Returns `true` if the subject has an error, `false` otherwise.
 pub fn[T, E] Subject::has_error(self : Subject[T, E]) -> Bool {
   self.error is Some(_)
 }
 
 ///|
+/// Returns the error of the subject, if any.
 pub fn[T, E] Subject::get_error(self : Subject[T, E]) -> E? {
   self.error
 }
 
 ///|
+/// Returns the number of observers of the subject.
 pub fn[T, E] Subject::observers_count(self : Subject[T, E]) -> Int {
   self.observers.length()
 }
 
 ///|
+/// Subscribes to the subject with the given `observer` and returns a
 pub fn[T, E] Subject::on(
   self : Subject[T, E],
   observer : Observer[T, E],
@@ -205,6 +223,7 @@ pub fn[T, E] Subject::on(
 }
 
 ///|
+/// Converts the subject to an observable and subscribes to it with the given
 pub fn[T, E] Subject::on_from_next(
   self : Subject[T, E],
   next : (T) -> Unit,
@@ -213,6 +232,7 @@ pub fn[T, E] Subject::on_from_next(
 }
 
 ///|
+/// Closes the subject and unsubscribes all observers.
 pub fn[T, E] Subject::close(self : Subject[T, E]) -> Unit {
   guard !self.closed
   self.closed = true
@@ -220,6 +240,7 @@ pub fn[T, E] Subject::close(self : Subject[T, E]) -> Unit {
 }
 
 ///|
+/// Nexts the subject with the given `value`.
 pub fn[T, E] Subject::next(self : Subject[T, E], value : T) -> Unit {
   guard !self.stopped
   self.observers.each(observer => {
@@ -229,6 +250,7 @@ pub fn[T, E] Subject::next(self : Subject[T, E], value : T) -> Unit {
 }
 
 ///|
+/// Errors the subject with the given `error`.
 pub fn[T, E] Subject::error(self : Subject[T, E], error : E) -> Unit {
   guard !self.stopped
   self.error = Some(error)
@@ -241,6 +263,7 @@ pub fn[T, E] Subject::error(self : Subject[T, E], error : E) -> Unit {
 }
 
 ///|
+/// Completes the subject.
 pub fn[T, E] Subject::complete(self : Subject[T, E]) -> Unit {
   guard !self.stopped
   self.stopped = true

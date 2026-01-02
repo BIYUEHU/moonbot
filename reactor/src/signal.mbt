@@ -17,20 +17,26 @@ pub struct State[T] {
 }
 
 ///|
+/// Create a new state with the given initial value.
 pub fn[T] State::new(val : T) -> State[T] {
   { val, id: signal_counter.get() }
 }
 
 ///|
-pub fnalias State::new as state
+/// Create a new state with the given initial value.
+pub fn[T] state(val : T) -> State[T] {
+  State::new(val)
+}
 
 ///|
+/// Get the current value of the state.
 pub fn[T] State::get(self : State[T]) -> T {
   signal_events.emit(Trace, self.id)
   self.val
 }
 
 ///|
+/// Set the current value of the state.
 pub fn[T : Eq] State::set(self : State[T], val : T) -> Unit {
   guard val != self.val
   self.val = val
@@ -38,11 +44,13 @@ pub fn[T : Eq] State::set(self : State[T], val : T) -> Unit {
 }
 
 ///|
+/// Get the current value of the state and subscribe to changes.
 pub fn[T] State::on(self : State[T], listener : (T) -> Unit) -> () -> Unit {
   effect(() => listener(self.get()))
 }
 
 ///|
+/// Update the current value of the state using a function.
 pub fn[T : Eq] State::update(self : State[T], f : (T) -> T) -> Unit {
   self.set(f(self.get()))
 }
@@ -53,19 +61,25 @@ pub struct Computed[T] {
 }
 
 ///|
+/// Create a new computed value with the given callback.
 pub fn[T] Computed::new(callback : () -> T) -> Computed[T] {
   { callback, }
 }
 
 ///|
-pub fnalias Computed::new as computed
+/// Create a new computed value with the given callback.
+pub fn[T] computed(callback : () -> T) -> Computed[T] {
+  Computed::new(callback)
+}
 
 ///|
+/// Get the current value of the computed value.
 pub fn[T] Computed::get(self : Computed[T]) -> T {
   (self.callback)()
 }
 
 ///|
+/// Subscribe to changes of the computed value.
 pub fn[T] Computed::on(
   self : Computed[T],
   listener : (T) -> Unit,
@@ -74,6 +88,7 @@ pub fn[T] Computed::on(
 }
 
 ///|
+/// Update the current value of the computed value using a function.
 pub fn effect(callback : () -> Unit) -> () -> Unit {
   let dependencies = []
   let off1 = signal_events.on(Trace, id => if !dependencies.contains(id) {

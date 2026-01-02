@@ -6,6 +6,7 @@ pub struct Events[N, T] {
 }
 
 ///|
+/// Executes the middlewares and the listeners for the given event and data.
 fn[N, T] Events::exec(
   self : Events[N, T],
   event : N,
@@ -20,11 +21,13 @@ fn[N, T] Events::exec(
 }
 
 ///|
+/// Creates a new instance of `Events`.
 pub fn[N : Eq + Hash, T] Events::new() -> Events[N, T] {
   { count: 0, listeners: {}, middlewares: {} }
 }
 
 ///|
+/// Registers a listener for the given event.
 pub fn[N : Eq + Hash, T] Events::on(
   self : Events[N, T],
   event : N,
@@ -53,6 +56,7 @@ pub fn[N : Eq + Hash, T] Events::on(
 }
 
 ///|
+/// Registers a listener for the given event that will be executed only once.
 pub fn[N : Eq + Hash, T] Events::once(
   self : Events[N, T],
   event : N,
@@ -62,6 +66,7 @@ pub fn[N : Eq + Hash, T] Events::once(
 }
 
 ///|
+/// Emits the given event with the given data.
 pub fn[N : Eq + Hash, T] Events::emit(
   self : Events[N, T],
   event : N,
@@ -78,6 +83,7 @@ pub fn[N : Eq + Hash, T] Events::emit(
 }
 
 ///|
+/// Emits the given event with the given data to all listeners.
 pub fn[N, T] Events::emitAll(self : Events[N, T], data : T) -> Unit {
   self.listeners.each((event, listeners) => self.exec(event, data, () => listeners
     .values()
@@ -85,6 +91,7 @@ pub fn[N, T] Events::emitAll(self : Events[N, T], data : T) -> Unit {
 }
 
 ///|
+/// Registers a middleware for the given event.
 pub fn[N, T] Events::middleware(
   self : Events[N, T],
   middleware : (N, T, () -> Unit) -> Unit,
@@ -96,6 +103,7 @@ pub fn[N, T] Events::middleware(
 }
 
 ///|
+/// Checks if the given event has any listeners.
 pub fn[N, T] Events::check(self : Events[N, T], event : N, data : T) -> Bool {
   let mut pass = false
   self.exec(event, data, () => pass = true)

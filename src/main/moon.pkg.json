@@ -1,0 +1,7 @@
+{
+  "is_main": true,
+  "import": [
+    "himeno/moonbot/interface",
+    "himeno/reactor"
+  ]
+}

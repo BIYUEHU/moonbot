@@ -1,0 +1,19 @@
+{
+  "name": "himeno/reactive",
+  "version": "0.1.2",
+  "readme": "README.md",
+  "homepage": "https://github.com/BIYUEHU/moonbot/tree/main/reactor",
+  "license": "GPL-3.0-or-later",
+  "keywords": [
+    "reactive-programming",
+    "functional-reactive-programming",
+    "frp",
+    "streams",
+    "observer",
+    "signal",
+    "event-emiter",
+    "events"
+  ],
+  "description": "A reactive programming library, including signals, event emitters, and streams observer.",
+  "source": "src"
+}
